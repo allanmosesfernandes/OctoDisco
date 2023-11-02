@@ -7,29 +7,37 @@ const corsHandler = cors({
   // You can add more configuration options if needed
 });
 
-exports.handler = async function(event, context, callback) {
-  corsHandler(event, context, async () => {
-    try {
-      const response = await axios.post('https://tracking-idp.responsiblelendinglimited.co.uk/token', {
-        grant_type: 'client_credentials',
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET
-      }, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      });
+exports.handler = async function(event, context) {
+  return new Promise((resolve, reject) => {
+    corsHandler(event, context, async () => {
+      try {
+        const response = await axios.post('https://tracking-idp.responsiblelendinglimited.co.uk/token', {
+          grant_type: 'client_credentials',
+          client_id: process.env.CLIENT_ID,
+          client_secret: process.env.CLIENT_SECRET
+        }, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        });
 
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ access_token: response.data.access_token })
-      };
-    } catch (error) {
-      console.error('Error generating auth token:', error);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Internal Server Error' })
-      };
-    }
+        resolve({
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*', // Ensure this header is set
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          },
+          body: JSON.stringify({ access_token: response.data.access_token })
+        });
+      } catch (error) {
+        console.error('Error generating auth token:', error);
+        resolve({
+          statusCode: 500,
+          body: JSON.stringify({ error: 'Internal Server Error' })
+        });
+      }
+    });
   });
 };
