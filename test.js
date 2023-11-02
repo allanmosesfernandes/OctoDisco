@@ -1,4 +1,4 @@
-const generateAuthToken = require('./generateauth');
+const generateAuthToken = require('./netlify/functions/generateauth');
 
 async function test() {
   const token = await generateAuthToken();
